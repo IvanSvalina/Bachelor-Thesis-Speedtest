@@ -1,0 +1,155 @@
+{%load static %}
+<!doctype html>
+<html lang="en" class="h-100">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.82.0">
+    <title>Test</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/cover/">
+    <link rel="stylesheet"href="{% static 'gauge.css' %}">
+    <link rel="stylesheet"href="{% static 'dropdown.css' %}">
+
+    <!-- Bootstrap core CSS -->
+<link href="{% static '/assets/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="{% static 'cover.css' %}" rel="stylesheet">
+
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="{% static 'dropdown.js' %}"></script>
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+  }
+</style>
+    
+  
+</head>
+<body class="d-flex h-100 text-center text-white bg-dark">
+   
+    
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+  <header class="mb-auto">
+    <div>
+      <h3 class="float-md-start mb-0">Brzina</h3>
+    </div>
+  </header>
+
+  <main class="px-3">
+      <nav class="nav nav-masthead justify-content-center">
+
+          <div class="grid">
+              <div class="cell"><b>Ping</b></div>
+              <div class="cell" style="height: 15px;"><strong id="ping_h"></strong></div>
+          </div>
+          <div class="grid">
+              <div class="cell"><b>Download speed</b></div>
+              <div class="cell" style="height: 15px;"><strong id="speed-download_h"></strong></div>
+          </div>
+          <div class="grid">
+              <div class="cell"><b>Upload Speed</b></div>
+              <div class="cell" style="height: 15px;"><strong id="speed-upload_h"></strong></div>
+          </div>
+
+      </nav>
+      <hr class="break-line" />
+      <div class="gauge">
+          <div class="gauge__body">
+              <div class="gauge__fill">
+              </div>
+              <div class="gauge__cover">
+              </div>
+          </div>
+      </div>
+      <hr class="break-line" />
+
+      <button id="btn-start" class="dropbtn">Start</button>
+      
+      <hr class="break-line" />
+      <nav class="nav nav-masthead justify-content-center">
+          <a class="nav-link dropdown-t" aria-current="page" href="#">Test</a>
+          <a class="nav-link dropdown-t" aria-current="page" id="history-btn" href="/history">History</a>
+          </nav>
+  </main>
+
+  <footer class="mt-auto text-white-50">
+      <p>Cover template for <a href="https://getbootstrap.com/" class="text-white">Bootstrap</a>, by <a href="https://twitter.com/mdo" class="text-white">@mdo</a>.</p>
+  </footer>
+</div>
+  <script src="{% static 'gauge.js' %}"></script>
+  <script>
+    $(document).ready(function(){
+      $("#btn-start").click(function(){
+        $.ajax({
+                type:'get',
+                url:'/measureping',
+                contentType: "application/json; charset=utf-8",
+                data:$(this).serialize(),
+                datatype:'json',
+                success:function(response){
+                  p=parseInt(response.ping)
+                  d=response.d_speed.toFixed(2)
+                  bs=response.network
+                  $("#ping_h").html(p)
+                  $("#speed-download_h").html((d/1000000).toFixed(2))
+                  setGaugeValue(gaugeElement, ((d/1000000).toFixed(2))/100);
+                },
+                error:function(response){
+                  alert(("Neuspješno mjerenje"))
+              }
+              }).done(func_uspeed);
+
+        function func_uspeed(){
+          $.ajax({
+            type:'get',
+            url:'/measureuspeed',
+            contentType: "application/json; charset=utf-8",
+            data:$(this).serialize(),
+            datatype:'json',
+            success:function(response){
+              u=response.u_speed.toFixed(2)
+              $("#speed-upload_h").html((u/1000000).toFixed(2))
+              setGaugeValue(gaugeElement, ((u/1000000).toFixed(2))/100);
+            },
+            error:function(response){
+              alert(("Neuspješno mjerenje"))
+          }
+          }).done(savemeas);
+        }      
+        function savemeas(){
+          $.ajax({
+            type:'post',
+            url:'/savemeas',
+            data:JSON.stringify({"number":1,"network":bs, "d_speed":d, "u_speed":u, "ping":p}),
+            contentType: "application/json; charset=utf-8",
+            datatype:'json',
+            processData:false,
+            success:function(response){
+            },
+            error:function(response){
+              alert("Neuspješno spremanje")
+          }
+          })
+        }
+      });
+
+      $('#history-btn').click(() =>  {
+        window.location = '/history'
+      });
+    });
+  </script>
+  </body>
+</html>
